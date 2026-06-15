@@ -1,0 +1,20 @@
+2026-06-15 20:44:25 - DEBUG - \u0110ang tính toán chi phí n\u0103ng l\u01b0\u1ee3ng cho 2 thi\u1ebft b\u1ecb
+2026-06-15 20:44:25 - INFO - Displayed device list successfully.
+2026-06-15 20:44:30 - DEBUG - Starting update indices.
+2026-06-15 20:44:42 - ERROR - Device ID m03 not found.
+2026-06-15 20:44:48 - DEBUG - Starting update indices.
+2026-06-15 20:44:50 - ERROR - Device ID m02 not found.
+2026-06-15 20:45:57 - DEBUG - Starting update indices.
+2026-06-15 20:46:13 - INFO - Successfully updated indices for device M02.
+2026-06-15 20:46:22 - DEBUG - \u0110ang tính toán chi phí n\u0103ng l\u01b0\u1ee3ng cho 2 thi\u1ebft b\u1ecb
+2026-06-15 20:46:22 - INFO - Displayed device list successfully.
+2026-06-15 20:46:29 - DEBUG - Starting trigger_overload_alert function.
+2026-06-15 20:46:33 - WARNING - ERR-E04: Device M02 is already in OVERLOAD state.
+2026-06-15 20:46:38 - DEBUG - Calculating energy financials for 2 devices.
+2026-06-15 20:50:16 - DEBUG - Calculating energy financials for 2 devices.
+2026-06-15 20:50:19 - DEBUG - Starting update indices.
+2026-06-15 20:50:22 - ERROR - Device ID M001 not found.
+2026-06-15 20:50:28 - DEBUG - Starting update indices.
+2026-06-15 20:50:34 - INFO - Successfully updated indices for device M01.
+2026-06-15 20:50:35 - DEBUG - \u0110ang tính toán chi phí n\u0103ng l\u01b0\u1ee3ng cho 2 thi\u1ebft b\u1ecb
+2026-06-15 20:50:35 - INFO - Displayed device list successfully.
