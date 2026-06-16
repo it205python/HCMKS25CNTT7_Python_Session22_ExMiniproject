@@ -1,133 +1,143 @@
 import logging
 
 logging.basicConfig(
-    filename="check.log",
-    filemode="a",
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    filename='history.log',
+    level=logging.DEBUG,  # Nhìn thấy toàn bộ luồng điều tra từ mức DEBUG trở lên
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
+logger = logging.getLogger(__name__)
 
 
-# cn1
+def show_menu():
+    print("=" * 50)
+    print("      SMART ENERGY MONITOR - PHÒNG CƠ ĐIỆN      ")
+    print("="*50)
+    print("1. Xem danh sách thiết bị giám sát")
+    print("2. Cập nhật chỉ số điện tiêu thụ (Check-in)")
+    print("3. Kích hoạt trạng thái cảnh báo quá tải")
+    print("4. Tính tổng lượng điện & Chi phí năng lượng")
+    print("5. Thoát chương trình")
+    print("=" * 50)
+
+
 def show_devices(devices):
-    logging.info("Nguoi dung yeu cau xem danh sach thiet bi.")
+    logger.debug(f"Đang tính toán chi phí năng lượng cho {len(devices)} thiết bị")
 
-    if len(devices) == 0:
-        logging.warning(
-            "Danh sach thiet bi dang trong, khong co du lieu de hien thi.")
-        print("He thong hien chua co thiet bi giam sat nao!")
+    if (len(devices) == 0):
+        print("Hệ thống hiện chưa có thiết bị giám sát nào!")
+        logger.warning("Device list is empty.")
         return (0.0, 0.0, 0.0)
 
-    print("--- Danh Sách Thiết Bị Giám Sát ---")
-    print(f"{'MA TB':<8} | {'VI TRI PHAN XUONG':<22} | {'CHI SO CU':>10} | {'CHI SO MOI':>10} | {'TRANG THAI'}")
+    print("--- DANH SÁCH THIẾT BỊ GIÁM SÁT ---")
+    print(f"{'MÃ TB':<8} | {'VỊ TRÍ PHÂN XƯỞNG':<22} | {'CHỈ SỐ CŨ':>10} | {'CHỈ SỐ MỚI':>10} | {'TRẠNG THÁI'}")
     print("-" * 70)
 
     for item in devices:
         print(f"{item['id']:<8} | {item['location']:<22} | {item['old_index']:>10} | {item['new_index']:>10} | {item['status']}")
-
-    logging.info(f"Hien thi thanh cong {len(devices)} thiet bi.")
+    logger.info("Displayed device list successfully.")
     return devices
-
-# Chức năng 2
 
 
 def update_indices(devices):
-    device_id = input("Nhập mã thiết bị: ").strip()
-    device = None
+    logger.debug("Starting update indices.")
+
+    device_id = input("Nhập mã thiết bị cần cập nhật chỉ số: ").strip().upper()
+
+    target_device = None
+
+    for item in devices:
+        if (item["id"] == device_id):
+            target_device = item
+            break
+
+    if (target_device is None):
+        print("[Lỗi] (ERR-E01): Mã thiết bị này không tồn tại trong danh sách hệ thống")
+        logger.error(f"Device ID {device_id} not found.")
+        return
+
+    while True:
+        try:
+            old_index = float(input("Nhập chỉ số cũ: "))
+
+            if (old_index < 0):
+                print("[Lỗi] (ERR-E03): Định dạng không hợp lệ! Chỉ số điện phải là số lớn hơn hoặc bằng 0!")
+                continue
+            break
+
+        except ValueError:
+            print("[Lỗi] (ERR-E03): Định dạng không hợp lệ! Chỉ số điện phải là số lớn hơn hoặc bằng 0!")
+            logger.error("Invalid old index input.")
+
+    while True:
+        try:
+            new_index = float(input("Nhập chỉ số mới: "))
+
+            if (new_index < 0):
+                print("[Lỗi] (ERR-E03): Định dạng không hợp lệ! Chỉ số điện phải là số lớn hơn hoặc bằng 0!")
+                continue
+
+            if (new_index < old_index):
+                print("[Lỗi] (ERR-E02): Số liệu lỗi! Chỉ số mới không được nhỏ hơn chỉ số cũ!")
+                logger.error(
+                    f"ERR-E02: new_index={new_index} < old_index={old_index}"
+                )
+                continue
+
+            break
+
+        except ValueError:
+            print("[Lỗi] (ERR-E03): Định dạng không hợp lệ! Chỉ số điện phải là số lớn hơn hoặc bằng 0!")
+            logger.error("Invalid new index input.")
+
+    target_device["old_index"] = old_index
+    target_device["new_index"] = new_index
+
+    print(f"[Thành công]: Thiết bị {device_id} đã được cập nhật số liệu mới.")
+    logger.info(f"Successfully updated indices for device {device_id}.")
+
+
+def trigger_overload_alert(devices):
+    logger.debug("Starting trigger_overload_alert function.")
+
+    device_id = input("Nhập mã thiết bị cần kích hoạt cảnh báo: ").strip().upper()
+
+    target_device = None
+
     for item in devices:
         if item["id"] == device_id:
-            device = item
-            break
-    if device is None:
-        print("[ERR-E01] Không tìm thấy mã thiết bị trong hệ thống!")
-        logging.error(f"Không tìm thấy thiết bị có mã {device_id}")
-        return
-    while True:
-        try:
-            old_index = int(input("Nhập chỉ số cũ: "))
-            if old_index < 0:
-                print("[LỖI] Chỉ số phải lớn hơn hoặc bằng 0!")
-                continue
-            break
-        except ValueError:
-            print("[LỖI] Vui lòng nhập số hợp lệ!")
-    while True:
-        try:
-            new_index = int(input("Nhập chỉ số mới: "))
-            if new_index < 0:
-                print("[LỖI] Chỉ số phải lớn hơn hoặc bằng 0!")
-                continue
-            if new_index < old_index:
-                print("[ERR-E02] Chỉ số mới không được nhỏ hơn chỉ số cũ!")
-                continue
-            break
-        except ValueError:
-            print("[LỖI] Vui lòng nhập số hợp lệ!")
-    device["old_index"] = old_index
-    device["new_index"] = new_index
-    print(f"Đã cập nhật chỉ số cho thiết bị {device_id} thành công!")
-
-    logging.info(
-        f"Cập nhật thiết bị {device_id} | "
-        f"Old Index: {old_index} | "
-        f"New Index: {new_index}"
-    )
-
-
-def activate_overload_warning(devices: list) -> None:
-    """
-    Nhập mã thiết bị từ bàn phím để duyệt cảnh báo quá tải.
-    - Không tìm thấy mã thiết bị -> Báo lỗi ERR-E01
-    - Đã ở trạng thái Overload từ trước -> Báo lỗi ERR-E04
-    - Tiêu thụ > 5,000 kWh -> Chuyển sang Overload & Log WARNING
-    - Tiêu thụ <= 5,000 kWh -> Không đủ điều kiện kích hoạt
-    """
-    print("\n--- KÍCH HOẠT TRẠNG THÁI CẢNH BÁO QUÁ TẢI ---")
-    device_id = input("Nhập mã thiết bị cần duyệt cảnh báo: ").strip()
-
-    # Tìm kiếm thiết bị trong danh sách
-    target_device = None
-    for device in devices:
-        if device['id'] == device_id:
-            target_device = device
+            target_device = item
             break
 
-    # Trường hợp không tìm thấy mã thiết bị
-    if not target_device:
-        print(
-            f"[ERR-E01] Mã thiết bị '{device_id}' không tồn tại trên hệ thống!")
+    if target_device is None:
+        print("[Lỗi] (ERR-E01): Mã thiết bị này không tồn tại trong danh sách hệ thống!")
+        logger.error(f"ERR-E01: Device ID {device_id} not found.")
         return
 
-    # Trường hợp thiết bị tìm thấy đã ở trạng thái Overload từ trước
-    if target_device['status'] == 'Overload':
-        print(
-            f"[ERR-E04] Thiết bị '{device_id}' đã ở trạng thái Overload từ trước.")
+    if target_device["status"] == "Overload":
+        print("[Lỗi] (ERR-E04): Thao tác bị hủy! Thiết bị này đã được kích hoạt trạng thái OVERLOAD từ trước!")
+        logger.warning(
+            f"ERR-E04: Device {device_id} is already in OVERLOAD state.")
         return
 
-    # Tính toán lượng điện tiêu thụ thực tế
-    consumption = target_device['new_index'] - target_device['old_index']
-    print(
-        f"Lượng điện tiêu thụ thực tế của thiết bị {device_id}: {consumption:,} kWh")
+    energy_consumption = (target_device["new_index"] - target_device["old_index"])
 
-    # Kiểm tra điều kiện vượt mức 5,000 kWh
-    if consumption > 5000:
-        target_device['status'] = 'Overload'
-        print("=> Kết quả duyệt: ĐỦ ĐIỀU KIỆN KÍCH HOẠT")
-
-        # Phát ra thông báo log mức WARNING theo đúng yêu cầu
-        logging.warning(
-            f"Thiết bị {device_id} tại {target_device['location']} tiêu thụ {consumption:,} kWh -> Đã kích hoạt trạng thái Overload!"
-        )
+    if energy_consumption > 5000:
+        target_device["status"] = "Overload"
+        print(f"[Thành công]: Thiết bị {device_id} đã được chuyển sang trạng thái OVERLOAD.")
+        logger.warning(
+            f"Device {device_id} exceeded 5000 kWh. Status changed to OVERLOAD.")
     else:
-        print("=> Kết quả duyệt: Không đủ điều kiện kích hoạt (Tiêu thụ chưa vượt quá 5,000 kWh).")
-
-# chức năng 4
+        print(f"[Thông báo]: Thiết bị {device_id} chưa vượt ngưỡng 5000 kWh nên không cần kích hoạt cảnh báo.")
+        logger.info(
+            f"Device {device_id} consumption is {energy_consumption} kWh. No overload detected.")
 
 
 def calculate_energy_financials(devices):
-    logging.debug(f"Calculating energy financials for {len(devices)} devices.")
+    logger.debug(f"Calculating energy financials for {len(devices)} devices.")
 
     if (not devices):
+        logger.warning("Financial calculation requested with empty device list.")
         return (0.0, 0.0, 0.0)
 
     total_kwh = 0
@@ -138,69 +148,44 @@ def calculate_energy_financials(devices):
     base_cost = total_kwh * 3000
     discount_percent = 0
 
-    if total_kwh >= 50000:
+    if (total_kwh >= 50000):
         discount_percent = 3
 
     final_cost = base_cost * (1 - discount_percent / 100)
     return (total_kwh, discount_percent, final_cost)
 
 
-def show_menu():
-    print("\n" + "="*50)
-    print("      SMART ENERGY MONITOR - PHÒNG CƠ ĐIỆN      ")
-    print("="*50)
-    print("1. Xem danh sách thiết bị giám sát")
-    print("2. Cập nhật chỉ số điện tiêu thụ (Check-in)")
-    print("3. Kích hoạt trạng thái cảnh báo quá tải")
-    print("4. Tính tổng lượng điện & Chi phí năng lượng")
-    print("5. Thoát chương trình")
-    print("="*50)
-
-
 def main():
     devices = [
-        {'id': 'M01', 'location': 'Mechanical Shop A',
-            'old_index': 1200, 'new_index': 4500, 'status': 'Normal'},
-        {'id': 'M02', 'location': 'Assembly Line B',
-            'old_index': 2300, 'new_index': 8500, 'status': 'Overload'}
+        {'id': 'M01', 'location': 'Mechanical Shop A', 'old_index': 1200, 'new_index': 4500, 'status': 'Normal'},
+        {'id': 'M02', 'location': 'Assembly Line B', 'old_index': 2300, 'new_index': 8500, 'status': 'Overload'}
     ]
 
     while True:
         show_menu()
 
-        try:
-            choice = int(input("Mời chọn chức năng (1-5): "))
-        except ValueError:
-            print("[LỖI] Vui lòng chỉ nhập số nguyên từ 1 đến 5!")
-            continue
+        choice = input("Mời chọn chức năng (1-5): ")
 
-        if choice == 1:
-            print("\n--> Bạn đã chọn Chức năng 1: Xem danh sách thiết bị.")
-            show_devices(devices)
+        match choice:
+            case "1":
+                show_devices(devices)
+            case "2":
+                update_indices(devices)
+            case "3":
+                trigger_overload_alert(devices)
+            case "4":
+                total_kwh, discount_percent, final_cost = (calculate_energy_financials(devices))
 
-        elif choice == 2:
-            update_indices(devices)
-
-        elif choice == 3:
-            print("\n--> Bạn đã chọn Chức năng 3: Kích hoạt trạng thái cảnh báo quá tải.")
-            activate_overload_warning(devices)
-
-        elif choice == 4:
-            total_kwh, discount_percent, final_cost = (
-                calculate_energy_financials(devices))
-
-            print("\n===== BÁO CÁO NĂNG LƯỢNG =====")
-            print(f"Tổng điện tiêu thụ : {total_kwh:,.0f} kWh")
-            print(f"Chiết khấu áp dụng : {discount_percent}%")
-            print(f"Tổng tiền thanh toán: {final_cost:,.0f} VND")
-
-        elif choice == 5:
-            print("\nCảm ơn bạn đã sử dụng hệ thống. Tạm biệt!")
-            break
-
-        else:
-            print("[LỖI] Lựa chọn không hợp lệ! Vui lòng chọn lại từ 1 đến 5.")
-
+                print("\n===== BÁO CÁO NĂNG LƯỢNG =====")
+                print(f"Tổng điện tiêu thụ : {total_kwh:,.0f} kWh")
+                print(f"Chiết khấu áp dụng : {discount_percent}%")
+                print(f"Tổng tiền thanh toán: {final_cost:,.0f} VND")
+            case "5":
+                print("Cảm ơn bạn đã sử dụng phần mềm Smart Energy Monitor!")
+                print("[Chương trình kết thúc]")
+                break
+            case _:
+                print("[LỖI] Lựa chọn không hợp lệ! Vui lòng chọn lại từ 1 đến 5.")
 
 if __name__ == "__main__":
     main()
