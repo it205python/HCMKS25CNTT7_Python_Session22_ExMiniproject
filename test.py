@@ -1,11 +1,15 @@
 # Test danh sách rỗng
+from miniproject import calculate_energy_financials
 from miniproject import show_devices
+
+
 def test_empty_devices_list():
     assert show_devices("") == (0.0, 0.0, 0.0)
 
 
 # Test mốc đạt chiết khấu
-from miniproject import calculate_energy_financials
+
+
 def test_financials_with_discount():
     devices = [
         {"old_index": 0, "new_index": 30000},
